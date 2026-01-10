@@ -1,0 +1,17 @@
+# RandLA-Net on Toronto-3D: train L001/L003/L004, validate on L002 (the standard split).
+name: randla_toronto3d
+data:
+  root: ${DATA}/toronto3d_prepared
+  train_tiles: [L001, L003, L004]
+  val_tiles: [L002]
+  features: [rgb, intensity]
+  num_points: 40960
+  k: 16
+  ratios: [4, 4, 4, 4, 2]
+  batch_size: 4
+  num_workers: 12
+  steps_per_epoch: 500
+  val_samples: 400
+optim:
+  epochs: 100
+  lr: 0.01

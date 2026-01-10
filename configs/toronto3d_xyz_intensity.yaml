@@ -1,0 +1,7 @@
+# Geometry + intensity only (no colour): applicable to scans without RGB, e.g. airborne LAZ
+# tiles from hoydedata.no. Expect a lower mIoU than with colour.
+name: randla_toronto3d_no_rgb
+data:
+  root: ${DATA}/toronto3d_prepared
+  features: [intensity]
+  num_workers: 12

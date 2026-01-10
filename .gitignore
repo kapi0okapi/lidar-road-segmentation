@@ -1,0 +1,44 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# datasets, training outputs and exported models
+/data/
+/runs/
+*.pt
+*.pth
+*.onnx
+*.engine
+
+# rendered Slurm scripts and logs
+slurm/generated/
+slurm/logs/
+slurm/cluster.local.toml
+
+# private notes
+*.private.md
+
+.DS_Store
+.ipynb_checkpoints/
+*.ply
+*.las
+*.laz
+
+# environments, editors and secrets
+.env
+.env.*
+!.env.example
+.mypy_cache/
+.coverage
+htmlcov/
+.idea/
+.vscode/
+*.log
+*.onnx.data
+*.ckpt
+*.safetensors

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lidar-road-segmentation"
+version = "0.1.0"
+description = "RandLA-Net segmentation of mobile-mapping LiDAR and guardrail height measurement."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Kacper Pawlowski" }]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pyyaml>=6",
+    "torch>=2.3",
+    "plyfile>=1.0",
+    "laspy[lazrs]>=2.5",
+]
+
+[project.optional-dependencies]
+train = ["tensorboard>=2.16"]
+dev = ["lidar-road-segmentation[train]", "pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+lidar-prepare-toronto3d = "lidar_seg.datasets.toronto3d:main"
+lidar-train = "lidar_seg.train:main"
+lidar-infer = "lidar_seg.infer:main"
+lidar-barriers = "lidar_seg.barriers:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "NPY"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

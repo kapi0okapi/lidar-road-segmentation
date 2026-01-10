@@ -1,0 +1,18 @@
+# Tiny CPU run on synthetic tiles (used by the tests).
+name: smoke
+device: cpu
+amp: false
+data:
+  train_tiles: [S001]
+  val_tiles: [S002]
+  num_points: 4096
+  ratios: [4, 4, 4, 2]
+  batch_size: 2
+  num_workers: 0
+  steps_per_epoch: 3
+  val_samples: 2
+model:
+  d_out: [8, 16, 32, 64]
+optim:
+  epochs: 1
+  warmup_epochs: 0

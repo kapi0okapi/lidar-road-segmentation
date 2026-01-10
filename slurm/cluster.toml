@@ -1,0 +1,56 @@
+# Slurm cluster settings and job definitions, rendered by slurm/generate.py.
+# Put your account in slurm/cluster.local.toml (not committed):  [cluster]  account = "..."
+# Find your Slurm account with:  sacctmgr show assoc format=Account%20,User,QOS | grep $USER
+
+[cluster]
+account = "CHANGE_ME"   # overridden by slurm/cluster.local.toml
+python_module = "Python/3.11.3-GCCcore-12.3.0"   # module spider Python
+venv = "/cluster/work/$USER/venvs/lidar-road-segmentation"
+workdir = "/cluster/work/$USER/lidar-road-segmentation"   # $DATA = workdir/data, $RUNS = workdir/runs
+mail_user = ""
+
+[defaults]
+partition = "GPUQ"
+time = "1-00:00:00"
+cpus = 12        # k-NN index building happens in the DataLoader workers
+mem = "64G"
+gpus = 1
+constraint = "gpu32g|gpu40g|gpu80g"   # V100 32 GB, A100, H100 (setup_cluster.sh installs PyTorch for CUDA 12.6)
+
+[jobs.prepare]
+description = "Toronto-3D PLY -> voxel-subsampled .npz tiles (6 cm) + projection indices (CPU)"
+partition = "CPUQ"
+gpus = 0
+cpus = 4
+mem = "48G"
+time = "0-01:00:00"
+command = "python -m lidar_seg.datasets.toronto3d --raw $DATA/toronto3d --out $DATA/toronto3d_prepared --voxel 0.06"
+
+[jobs.train]
+description = "RandLA-Net, RGB + intensity, 100 epochs x 500 steps"
+checkpoint_signal = true
+command = "python -m lidar_seg.train --config configs/toronto3d.yaml"
+
+[jobs.train-no-rgb]
+description = "Same without colour (for LiDAR without RGB, e.g. airborne LAZ)"
+checkpoint_signal = true
+command = "python -m lidar_seg.train --config configs/toronto3d.yaml --set name=randla_toronto3d_no_rgb --set data.features=[intensity]"
+
+[jobs.test]
+description = "Whole-tile inference with voting on L002, full-resolution IoU, throughput, LAZ output"
+time = "0-02:00:00"
+command = "python -m lidar_seg.infer --checkpoint $RUNS/randla_toronto3d/best.pt --tile $DATA/toronto3d_prepared/L002.npz --out $RUNS/randla_toronto3d/L002.laz"
+
+[jobs.test-no-rgb]
+description = "The same full-resolution test on L002 for the model without colour"
+time = "0-02:00:00"
+command = "python -m lidar_seg.infer --checkpoint $RUNS/randla_toronto3d_no_rgb/best.pt --tile $DATA/toronto3d_prepared/L002.npz --out $RUNS/randla_toronto3d_no_rgb/L002.laz"
+
+[jobs.barriers]
+description = "Guardrail/fence extraction and height profile from the L002 predictions (CPU)"
+partition = "CPUQ"
+gpus = 0
+cpus = 2
+mem = "16G"
+time = "0-00:30:00"
+command = "python -m lidar_seg.barriers --tile $DATA/toronto3d_prepared/L002.npz --labels $RUNS/randla_toronto3d/L002_pred.npy --out $RUNS/randla_toronto3d/barriers"
